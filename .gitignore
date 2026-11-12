@@ -1,0 +1,6 @@
+# Never commit plain board data or pairing codes
+plain*.json
+*.plain.json
+pairing-code*
+.DS_Store
+node_modules/

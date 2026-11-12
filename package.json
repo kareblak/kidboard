@@ -1,0 +1,10 @@
+{
+  "name": "kidboard",
+  "private": true,
+  "type": "module",
+  "description": "Wall board PWA for the kids: clock, calendar, homework. Data is encrypted; see README.",
+  "scripts": {
+    "encrypt": "node scripts/encrypt.mjs",
+    "keygen": "node scripts/keygen.mjs"
+  }
+}

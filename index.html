@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Kidboard</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Kidboard">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#E9EEF1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E161D" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+html,body{margin:0}[hidden]{display:none!important}
+/* Layout: wall board — "Nå" panel (clock, date, next up) on the left, one column per child, week strip along the bottom. */
+:root{
+  --bg:#E9EEF1; --surface:#FFFFFF; --ink:#14202A; --muted:#566673; --line:#D2DBE1;
+  --husk:#F2B705; --husk-ink:#382A00;
+  --blue:#2E6DB4; --red:#CC4B26; --green:#2D8749; --family:#6A5AA6; --kid-mix:100%;
+  --hand:#14202A; --face:#FFFFFF;
+  --f-display:"Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Atkinson Hyperlegible", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --r:18px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E161D; --surface:#17222C; --ink:#E7EDF1; --muted:#97A7B3; --line:#2A3946;
+  --husk:#F5C43A; --husk-ink:#2A1F00;
+  --blue:#6FA6E8; --red:#F08660; --green:#6FC287; --family:#A99AE6; --kid-mix:62%;
+  --hand:#E7EDF1; --face:#17222C; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E161D; --surface:#17222C; --ink:#E7EDF1; --muted:#97A7B3; --line:#2A3946;
+  --husk:#F5C43A; --husk-ink:#2A1F00;
+  --blue:#6FA6E8; --red:#F08660; --green:#6FC287; --family:#A99AE6; --kid-mix:62%;
+  --hand:#E7EDF1; --face:#17222C; color-scheme:dark}
+
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:calc(var(--k,1) * clamp(13px, min(1.5vw, 2.35vh), 21px));overflow:hidden;line-height:1.35;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit}
+
+.app{height:100%;overflow:hidden;display:grid;gap:clamp(8px,1.2vw,16px);
+  grid-template-columns:minmax(230px,26%) 1fr;grid-template-rows:minmax(0,1fr) auto;
+  grid-template-areas:"now kids" "week week";
+  padding-top:max(clamp(8px,1.2vw,16px), env(safe-area-inset-top, 0px));padding-bottom:max(clamp(8px,1.2vw,16px), env(safe-area-inset-bottom, 0px));
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+
+/* ---------- Nå-panelet ---------- */
+.now{grid-area:now;display:flex;flex-direction:column;gap:.7em;min-width:0;min-height:0;overflow:hidden}
+.greet{font-family:var(--f-display);font-weight:700;font-size:1.05em;color:var(--muted);letter-spacing:.01em}
+.clockwrap{display:flex;flex-direction:column;align-items:center;gap:6px}
+.clock{width:min(100%, calc(var(--k,1) * 30vh));max-width:100%;aspect-ratio:1}
+.clock .face{fill:var(--face);stroke:var(--line);stroke-width:2}
+.clock .tick{stroke:var(--muted);stroke-width:1.5}
+.clock .tick.big{stroke:var(--ink);stroke-width:3.5}
+.clock .num{fill:var(--ink);font-family:var(--f-display);font-weight:700;font-size:13px;text-anchor:middle;dominant-baseline:central}
+.clock .h{stroke:var(--hand);stroke-width:7;stroke-linecap:round}
+.clock .m{stroke:var(--hand);stroke-width:4.5;stroke-linecap:round}
+.clock .s{stroke:var(--husk);stroke-width:2;stroke-linecap:round}
+.clock .hub{fill:var(--husk);stroke:var(--hand);stroke-width:2}
+.digital{font-family:var(--f-display);font-weight:800;font-size:3.3em;line-height:.95;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.saying{font-family:var(--f-display);font-weight:500;font-size:1.15em;color:var(--muted)}
+.date{display:flex;align-items:baseline;justify-content:space-between;gap:10px;border-top:2px solid var(--line);padding-top:10px}
+.date .day{font-family:var(--f-display);font-weight:800;font-size:1.7em;line-height:1.05}
+.date .dm{font-size:1.05em;color:var(--muted)}
+.wk{font-family:var(--f-display);font-weight:700;font-size:.85em;background:var(--ink);color:var(--bg);border-radius:999px;padding:4px 10px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.next{background:var(--surface);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:4px;border:1px solid var(--line)}
+.next .lbl{font-size:.72em;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.next .when{font-family:var(--f-display);font-weight:800;font-size:1.5em;line-height:1.1;font-variant-numeric:tabular-nums}
+.next .what{font-weight:700;font-size:1.05em}
+.next .meta{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:.9em;flex-wrap:wrap}
+.status{margin-top:auto;font-size:.72em;color:var(--muted);display:flex;gap:8px;align-items:center}
+.status .dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex:none}
+.status.warn .dot{background:var(--husk)}
+.fsb{margin-left:auto;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-weight:700;font-size:1em;cursor:pointer;white-space:nowrap}
+.fsb:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.fsb[disabled]{cursor:default;opacity:.7}
+
+/* ---------- Barnas kolonner ---------- */
+.kids{grid-area:kids;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(10px,1.3vw,16px);min-width:0;min-height:0}
+.kid{--kc:var(--family);--c:color-mix(in srgb, var(--kc) var(--kid-mix), #fff);background:var(--surface);border-radius:var(--r);display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden;border:1px solid var(--line)}
+.kid header{background:var(--c);color:var(--surface);padding:.55em .8em .45em;display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.kid header h2{margin:0;font-family:var(--f-display);font-weight:800;font-size:1.9em;line-height:1;letter-spacing:-.01em}
+.kid header span{font-weight:700;font-size:.82em;opacity:.92;white-space:nowrap}
+.kbody{padding:.6em .7em .7em;display:flex;flex-direction:column;gap:.75em;overflow:hidden;min-height:0;flex:1}
+body.tight .ev .p, body.tight .words .song{display:none}
+body.tighter .hwi .due{display:none}
+.sec h3{margin:0 0 6px;font-size:.7em;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.ev{display:grid;grid-template-columns:auto 1fr;gap:1px 10px;padding:4px 0;border-bottom:1px dashed var(--line)}
+.ev:last-child{border-bottom:0}
+.ev .t{font-family:var(--f-display);font-weight:800;font-variant-numeric:tabular-nums;color:var(--c);min-width:3.1em}
+.ev .n{font-weight:700;min-width:0;overflow-wrap:anywhere}
+.ev .p{grid-column:2;font-size:.85em;color:var(--muted)}
+.empty{color:var(--muted);font-size:.92em}
+.husk{display:flex;flex-direction:column;gap:6px}
+.tag{display:flex;gap:8px;align-items:flex-start;background:var(--husk);color:var(--husk-ink);border-radius:10px;padding:7px 10px;font-weight:700;font-size:.95em;line-height:1.25}
+.tag::before{content:"";flex:none;width:.9em;height:.9em;margin-top:.15em;border:2.5px solid currentColor;border-radius:3px 3px 5px 5px;border-top-width:5px}
+.hw{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.hwi{width:100%;display:grid;grid-template-columns:auto 1fr;gap:1px 10px;align-items:start;text-align:left;background:transparent;border:0;border-radius:12px;padding:5px 4px;cursor:pointer}
+.hwi:focus-visible{outline:3px solid var(--c);outline-offset:1px}
+.hwi .box{width:1.35em;height:1.35em;border-radius:7px;border:2.5px solid var(--c);display:grid;place-items:center;margin-top:.05em}
+.hwi .box svg{width:.85em;height:.85em;opacity:0}
+.hwi .txt{min-width:0;overflow-wrap:anywhere}
+.hwi .sub{font-weight:700}
+.hwi .due{grid-column:2;font-size:.8em;font-weight:700;color:var(--muted)}
+.hwi .due.hot{color:var(--c)}
+.hwi[aria-checked="true"] .box{background:var(--c)}
+.hwi[aria-checked="true"] .box svg{opacity:1}
+.hwi[aria-checked="true"] .txt{text-decoration:line-through;text-decoration-thickness:2px;color:var(--muted)}
+.hwi[disabled]{cursor:default}
+.words{border:2px solid var(--c);border-radius:12px;padding:8px 12px}
+.words .w{font-family:var(--f-display);font-weight:700;font-size:1.25em;line-height:1.3;color:var(--c);overflow-wrap:anywhere}
+.words .song{font-size:.85em;color:var(--muted);margin-top:4px}
+.tmr{background:color-mix(in srgb, var(--c) 11%, var(--surface));border-radius:12px;padding:.5em .7em;display:flex;flex-direction:column;gap:.3em}
+.tmrh{font-family:var(--f-display);font-weight:800;color:var(--c);font-size:1.05em}
+.ti{color:var(--c);font-weight:700;line-height:1.25;overflow-wrap:anywhere}
+.ti b{font-family:var(--f-display);font-variant-numeric:tabular-nums;margin-right:.35em}
+.tp{display:flex;gap:8px;align-items:flex-start;color:var(--c);font-weight:700;line-height:1.25}
+.tp::before{content:"";flex:none;width:.9em;height:.9em;margin-top:.15em;border:2.5px solid currentColor;border-radius:3px 3px 5px 5px;border-top-width:5px}
+.tmr .none{color:var(--muted);font-size:.92em}
+
+/* ---------- Uka ---------- */
+.week{grid-area:week;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.d{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:.45em .6em;min-width:0;display:flex;flex-direction:column;gap:5px}
+.d.today{border:2.5px solid var(--ink)}
+.d.wkend{background:color-mix(in srgb, var(--family) 6%, var(--surface))}
+.d .dh{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:0 4px}
+.d .dn{font-family:var(--f-display);font-weight:800;font-size:1em;white-space:nowrap}
+.d .dd{font-size:.8em;color:var(--muted);font-variant-numeric:tabular-nums}
+.chip{display:flex;gap:6px;align-items:flex-start;font-size:.78em;line-height:1.2;min-width:0}
+.chip .dots{display:flex;gap:2px;margin-top:.25em;flex:none}
+.chip .dots i,.next .dots i{width:.6em;height:.6em;border-radius:50%;background:color-mix(in srgb, var(--kc,var(--family)) var(--kid-mix), #fff);display:block}
+.next .dots{display:flex;gap:2px}
+.chip .ct{min-width:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.chip b{font-variant-numeric:tabular-nums}
+.more{font-size:.72em;color:var(--muted)}
+.legend{display:none}
+
+/* ---------- Natt ---------- */
+.night[hidden]{display:none}
+.night{position:fixed;inset:0;background:rgba(4,8,12,.78);display:grid;place-items:center;z-index:20;cursor:pointer}
+.night div{font-family:var(--f-display);color:#C9D4DC;text-align:center}
+.night .nt{font-weight:800;font-size:clamp(60px,12vw,160px);font-variant-numeric:tabular-nums;line-height:1}
+.night .ns{font-size:1.2em;opacity:.8;margin-top:8px}
+
+/* ---------- Kobling ---------- */
+.pair{position:fixed;inset:0;z-index:30;background:var(--bg);display:grid;place-items:center;padding:24px}
+.pair form{max-width:520px;width:100%;display:flex;flex-direction:column;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:24px}
+.pair h1{margin:0;font-family:var(--f-display);font-weight:800;font-size:1.8em}
+.pair p{margin:0;color:var(--muted)}
+.pair textarea{font:inherit;font-size:16px;width:100%;min-height:6em;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);resize:vertical;user-select:text;-webkit-user-select:text}
+.pair textarea:focus-visible{outline:3px solid var(--blue);outline-offset:1px}
+.pair button{align-self:flex-start;background:var(--blue);color:#fff;border:0;border-radius:999px;padding:10px 20px;font-weight:700;font-size:16px;cursor:pointer}
+.pair .err{color:var(--red);font-weight:700}
+
+/* ---------- Smalere skjermer ---------- */
+@media (max-width:1000px), (orientation:portrait){
+  body{font-size:calc(var(--k,1) * clamp(13px, min(2.2vw, 1.75vh), 21px))}
+  .app{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"now" "kids" "week"}
+  .now{display:grid;grid-template-columns:auto 1fr 1fr;gap:.4em 1.2em;align-items:center;overflow:visible}
+  .greet{grid-column:2/-1}
+  .clockwrap{grid-row:1 / span 3}
+  .clock{width:calc(var(--k,1) * 17vh)}
+  .date{grid-column:2}
+  .next{grid-column:3;grid-row:2 / span 2}
+  .status{grid-column:1/-1;margin-top:0}
+  .kid{max-height:none}
+}
+@media (max-width:760px){
+  body{overflow:auto}
+  .app{height:auto;overflow:visible;grid-template-rows:auto auto auto}
+  .now{grid-template-columns:1fr}
+  .greet,.date,.next{grid-column:auto;grid-row:auto}
+  .kbody{overflow:visible}
+  .kids{grid-template-columns:1fr!important}
+  .week{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .now{grid-template-columns:1fr}
+  .clockwrap{grid-row:auto;flex-direction:row;justify-content:space-between;flex-wrap:wrap}
+  .clock{width:120px}
+}
+@media (prefers-reduced-motion: reduce){ .clock .s{display:none} }
+</style>
+</head>
+<body>
+<div class="app">
+  <section class="now" aria-label="Nå">
+    <div class="greet" id="greet">God dag</div>
+    <div class="clockwrap">
+      <svg class="clock" viewBox="0 0 200 200" role="img" aria-label="Klokke">
+        <circle class="face" cx="100" cy="100" r="96"></circle>
+        <g id="ticks"></g>
+        <line class="h" id="hh" x1="100" y1="100" x2="100" y2="54"></line>
+        <line class="m" id="mh" x1="100" y1="100" x2="100" y2="30"></line>
+        <line class="s" id="sh" x1="100" y1="114" x2="100" y2="24"></line>
+        <circle class="hub" cx="100" cy="100" r="6"></circle>
+      </svg>
+    </div>
+    <div>
+      <div class="digital" id="digital">--.--</div>
+      <div class="saying" id="saying"></div>
+    </div>
+    <div class="date">
+      <div><div class="day" id="day">I dag</div><div class="dm" id="dm"></div></div>
+      <div class="wk" id="wk">Uke</div>
+    </div>
+    <div class="next" id="next">
+      <div class="lbl">Neste</div>
+      <div class="what">Henter kalenderen …</div>
+    </div>
+    <div class="status" id="status"><span class="dot"></span><span id="statusTxt">Kobler til …</span><button type="button" class="fsb" id="fs">Fullskjerm</button></div>
+  </section>
+
+  <section class="kids" id="kids" aria-label="Barna"></section>
+  <section class="week" id="week" aria-label="Uka"></section>
+</div>
+<div class="pair" id="pair" hidden>
+  <form id="pairForm">
+    <h1>Koble til Kidboard</h1>
+    <p>Lim inn koblingskoden (starter med KB1-). Den lagres på denne iPaden, så du trenger bare gjøre dette én gang.</p>
+    <label for="pairCode" hidden>Koblingskode</label>
+    <textarea id="pairCode" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="KB1-…"></textarea>
+    <div class="err" id="pairErr" hidden></div>
+    <button type="submit">Koble til</button>
+  </form>
+</div>
+<div class="night" id="night" hidden><div><div class="nt" id="nightTime"></div><div class="ns">God natt. Trykk for å se tavla.</div></div></div>
+
+<script type="module">
+import { decryptWith, parsePairingCode } from "./crypto.js";
+// Children, their names and colours all come from the encrypted data file (data.kids).
+let KIDS=[];
+const kidColor=id=>{const k=KIDS.find(x=>x.id===id);return k&&k.color?k.color:"var(--family)"};
+const DAYS=["søndag","mandag","tirsdag","onsdag","torsdag","fredag","lørdag"];
+const MONTHS=["januar","februar","mars","april","mai","juni","juli","august","september","oktober","november","desember"];
+const HOURW=["tolv","ett","to","tre","fire","fem","seks","sju","åtte","ni","ti","elleve","tolv"];
+const state={events:[],homework:[],words:[],status:null,loaded:{events:false,homework:false,words:false},err:null,slow:false};
+let nightOverride=0;
+
+const pad=n=>String(n).padStart(2,"0");
+const ymd=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const fromYmd=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
+const hhmm=s=>s?s.replace(":","."):"";
+function isoWeek(d){const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const day=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-day);const y0=new Date(Date.UTC(t.getUTCFullYear(),0,1));return {year:t.getUTCFullYear(),week:Math.ceil(((t-y0)/864e5+1)/7)}}
+const weekKey=d=>{const w=isoWeek(d);return w.year+"-W"+pad(w.week)};
+const el=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
+
+function saying(d){
+  let m=Math.round(d.getMinutes()/5)*5,h=d.getHours()%12;
+  if(m===60){m=0;h=(h+1)%12}
+  const H=HOURW[h], N=HOURW[(h+1)%12||12];
+  return ({0:"Klokka er "+H,5:"Fem over "+H,10:"Ti over "+H,15:"Kvart over "+H,20:"Ti på halv "+N,25:"Fem på halv "+N,30:"Halv "+N,35:"Fem over halv "+N,40:"Ti over halv "+N,45:"Kvart på "+N,50:"Ti på "+N,55:"Fem på "+N})[m];
+}
+function greeting(h){return h<5?"God natt":h<10?"God morgen":h<17?"God dag":h<22?"God kveld":"God natt"}
+
+/* ---------- Klokke ---------- */
+(function buildFace(){
+  const g=document.getElementById("ticks"),ns="http://www.w3.org/2000/svg";
+  for(let i=0;i<60;i++){const a=i*6*Math.PI/180,big=i%5===0,r1=big?84:88,l=document.createElementNS(ns,"line");
+    l.setAttribute("x1",100+r1*Math.sin(a));l.setAttribute("y1",100-r1*Math.cos(a));l.setAttribute("x2",100+92*Math.sin(a));l.setAttribute("y2",100-92*Math.cos(a));
+    l.setAttribute("class","tick"+(big?" big":""));g.appendChild(l)}
+  for(let i=1;i<=12;i++){const a=i*30*Math.PI/180,t=document.createElementNS(ns,"text");t.setAttribute("x",100+72*Math.sin(a));t.setAttribute("y",100-72*Math.cos(a));t.setAttribute("class","num");t.textContent=i;g.appendChild(t)}
+})();
+let lastMinute=-1, lastDay="";
+function tick(){
+  const d=new Date(),s=d.getSeconds(),m=d.getMinutes(),h=d.getHours();
+  document.getElementById("hh").setAttribute("transform","rotate("+((h%12)*30+m*.5)+" 100 100)");
+  document.getElementById("mh").setAttribute("transform","rotate("+(m*6+s*.1)+" 100 100)");
+  document.getElementById("sh").setAttribute("transform","rotate("+(s*6)+" 100 100)");
+  if(m!==lastMinute){lastMinute=m;
+    const t=pad(h)+"."+pad(m);
+    document.getElementById("digital").textContent=t;
+    document.getElementById("nightTime").textContent=t;
+    document.getElementById("saying").textContent=saying(d);
+    document.getElementById("greet").textContent=greeting(h);
+    if(ymd(d)!==lastDay){lastDay=ymd(d)}
+    render();
+  }
+  updateNight(d);
+}
+
+/* ---------- Data ---------- */
+function eventsOn(day){
+  return state.events.filter(e=>e.date&&(e.date===day||(e.endDate&&e.date<=day&&day<=e.endDate)))
+    .sort((a,b)=>(a.start||"").localeCompare(b.start||""));
+}
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+let ticks={};try{ticks=JSON.parse(store.get("kb-ticks")||"{}")}catch(e){ticks={}}
+function isChecked(h,today){const d=ticks[h.id];if(!d)return false;return h.daily?d===today:true}
+function hwWeek(now){const wd=now.getDay();return weekKey(wd===6||wd===0?addDays(now,2):now)}
+function dueLabel(h,today,tomorrow){
+  if(h.daily)return {t:"Hver dag",hot:false};
+  if(!h.due)return {t:"I løpet av uka",hot:false};
+  if(h.due===today)return {t:"Til i dag",hot:true};
+  if(h.due===tomorrow)return {t:"Til i morgen",hot:true};
+  return {t:"Til "+DAYS[fromYmd(h.due).getDay()],hot:false};
+}
+
+/* ---------- Render ---------- */
+function render(){
+  const now=new Date(),today=ymd(now),tomorrow=ymd(addDays(now,1));
+  document.getElementById("day").textContent=DAYS[now.getDay()].replace(/^./,c=>c.toUpperCase());
+  document.getElementById("dm").textContent=now.getDate()+". "+MONTHS[now.getMonth()];
+  document.getElementById("wk").textContent="Uke "+isoWeek(now).week;
+  renderNext(now,today,tomorrow);
+  renderKids(now,today,tomorrow);
+  renderWeek(now,today);
+  renderStatus();
+  fit();
+}
+
+/* ---------- Tilpass til skjermen uten scrolling ---------- */
+function fit(){
+  const R=document.documentElement,B=document.body,app=document.querySelector(".app");
+  B.classList.remove("tight","tighter");R.style.setProperty("--k","1");
+  if(window.innerWidth<=760)return;
+  const over=()=>app.scrollHeight>app.clientHeight+1||[...document.querySelectorAll(".kbody,.now")].some(b=>b.scrollHeight>b.clientHeight+1);
+  let k=1;const shrink=min=>{while(over()&&k>min){k-=0.02;R.style.setProperty("--k",k.toFixed(2))}};
+  shrink(0.9);
+  if(over())B.classList.add("tight");
+  shrink(0.8);
+  if(over())B.classList.add("tighter");
+  shrink(0.66);
+}
+let fitT;window.addEventListener("resize",()=>{clearTimeout(fitT);fitT=setTimeout(fit,150)});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
+
+function kidDots(kids){const w=el("span","dots");(kids&&kids.length?kids:[null]).forEach(k=>{const i=el("i");if(k)i.style.setProperty("--kc",kidColor(k));w.appendChild(i)});return w}
+
+function renderNext(now,today,tomorrow){
+  const box=document.getElementById("next");box.replaceChildren(el("div","lbl","Neste"));
+  if(!state.loaded.events){box.appendChild(el("div","what",state.slow?"Får ikke kontakt med kalenderen ennå":"Henter kalenderen …"));return}
+  const nowM=now.getHours()*60+now.getMinutes();
+  const cand=[];
+  [today,tomorrow].forEach((day,i)=>eventsOn(day).forEach(e=>{if(!e.start||e.date!==day)return;const [h,m]=e.start.split(":").map(Number);const mins=i*1440+h*60+m-nowM;if(mins>-5)cand.push({e,mins,i})}));
+  cand.sort((a,b)=>a.mins-b.mins);
+  if(!cand.length){box.appendChild(el("div","what","Ingen flere avtaler i dag eller i morgen"));return}
+  const {e,mins,i}=cand[0];
+  let when;
+  if(mins<=0)when="Nå";
+  else if(i===1)when="I morgen "+hhmm(e.start);
+  else if(mins<60)when="Om "+mins+" min";
+  else{const h=Math.floor(mins/60),m=mins%60;when="Om "+h+" t"+(m?" "+m+" min":"")}
+  box.appendChild(el("div","when",when));
+  box.appendChild(el("div","what",e.title));
+  const meta=el("div","meta");meta.appendChild(kidDots(e.kids));
+  meta.appendChild(el("span",null,hhmm(e.start)+(e.end?"–"+hhmm(e.end):"")+(e.place?" · "+e.place:"")));
+  box.appendChild(meta);
+}
+
+function evRow(e){
+  const r=el("div","ev");
+  r.appendChild(el("div","t",e.start?hhmm(e.start):"•"));
+  r.appendChild(el("div","n",e.title));
+  if(e.place||e.end)r.appendChild(el("div","p",(e.end?"til "+hhmm(e.end):"")+(e.end&&e.place?" · ":"")+(e.place||"")));
+  return r;
+}
+const check='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5" fill="none" stroke="var(--surface)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+function renderKids(now,today,tomorrow){
+  const wrap=document.getElementById("kids");
+  const scrolls={};wrap.querySelectorAll(".kbody").forEach(b=>scrolls[b.dataset.kid]=b.scrollTop);
+  wrap.replaceChildren();
+  wrap.style.gridTemplateColumns="repeat("+Math.max(1,KIDS.length)+",minmax(0,1fr))";
+  const wk=hwWeek(now),afternoon=now.getHours()>=13;
+  KIDS.forEach(k=>{
+    const col=el("article","kid");col.dataset.kid=k.id;if(k.color)col.style.setProperty("--kc",k.color);
+    const hd=el("header");hd.appendChild(el("h2",null,k.name));if(k.sub)hd.appendChild(el("span",null,k.sub));col.appendChild(hd);
+    const body=el("div","kbody");body.dataset.kid=k.id;
+    const mine=e=>(e.kids||[]).includes(k.id);
+    const todayEv=eventsOn(today).filter(mine), tmrEv=eventsOn(tomorrow).filter(mine);
+
+    // Husk
+    const husk=todayEv.filter(e=>e.bring&&(!e.start||e.start>pad(now.getHours())+":"+pad(now.getMinutes())||e.date!==today)).map(e=>e.bring);
+    if(husk.length){const s=el("div","sec");s.appendChild(el("h3",null,"Husk i dag"));const l=el("div","husk");husk.forEach(t=>l.appendChild(el("div","tag",t)));s.appendChild(l);body.appendChild(s)}
+
+    // I dag
+    const sd=el("div","sec");sd.appendChild(el("h3",null,"I dag"));
+    if(!state.loaded.events)sd.appendChild(el("div","empty","Henter …"));
+    else if(todayEv.length)todayEv.forEach(e=>sd.appendChild(evRow(e)));
+    else sd.appendChild(el("div","empty","Ingenting spesielt i dag"));
+    body.appendChild(sd);
+
+    // I morgen
+    if(state.loaded.events){const s=el("div","sec tmrsec"),box=el("div","tmr");
+      box.appendChild(el("div","tmrh","I morgen"));
+      tmrEv.forEach(e=>{const r=el("div","ti");if(e.start)r.appendChild(el("b",null,hhmm(e.start)));r.appendChild(document.createTextNode(e.short||e.title));box.appendChild(r)});
+      tmrEv.filter(e=>e.bring).forEach(e=>box.appendChild(el("div","tp","Pakk: "+e.bring)));
+      if(!tmrEv.length)box.appendChild(el("div","none","Ingenting spesielt"));
+      s.appendChild(box);body.appendChild(s)}
+
+    // Lekser
+    const hw=state.homework.filter(h=>h.kid===k.id&&h.week===wk&&(h.daily||!h.due||h.due>=today))
+      .sort((a,b)=>{const r=h=>h.due===today?0:h.due===tomorrow?1:h.due?2:h.daily?3:4;return r(a)-r(b)||(a.due||"").localeCompare(b.due||"")||(a.order||0)-(b.order||0)});
+    if(hw.length){
+      const s=el("div","sec");s.appendChild(el("h3",null,"Lekser"));const ul=el("ul","hw");
+      hw.forEach(h=>{const li=el("li"),b=el("button","hwi");b.type="button";b.setAttribute("role","checkbox");
+        b.setAttribute("aria-checked",String(isChecked(h,today)));
+        const box=el("span","box");box.innerHTML=check;b.appendChild(box);
+        const txt=el("span","txt");if(h.subject){txt.appendChild(el("span","sub",h.subject+": "))}txt.appendChild(document.createTextNode(h.text||""));b.appendChild(txt);
+        const dl=dueLabel(h,today,tomorrow);b.appendChild(el("span","due"+(dl.hot?" hot":""),dl.t));
+        b.addEventListener("click",()=>toggle(h));li.appendChild(b);ul.appendChild(li)});
+      s.appendChild(ul);body.appendChild(s);
+    }
+
+    // Ukas ord
+    const w=state.words.find(x=>x.kid===k.id&&x.week===wk);
+    if(w&&((w.words&&w.words.length)||w.song)){const s=el("div","sec");s.appendChild(el("h3",null,w.label||"Ukas ord"));const box=el("div","words");
+      if(w.words&&w.words.length)box.appendChild(el("div","w",w.words.join(" · ")));
+      if(w.song)box.appendChild(el("div","song","Ukas sang: "+w.song));s.appendChild(box);body.appendChild(s)}
+
+
+    col.appendChild(body);wrap.appendChild(col);
+    if(scrolls[k.id])body.scrollTop=scrolls[k.id];
+  });
+}
+
+function renderWeek(now,today){
+  const wrap=document.getElementById("week");wrap.replaceChildren();
+  for(let i=0;i<7;i++){
+    const d=addDays(now,i),key=ymd(d),wd=d.getDay();
+    const c=el("div","d"+(i===0?" today":"")+(wd===0||wd===6?" wkend":""));
+    const h=el("div","dh");h.appendChild(el("span","dn",i===0?"I dag":i===1?"I morgen":DAYS[wd].replace(/^./,c=>c.toUpperCase())));h.appendChild(el("span","dd",d.getDate()+"."+(d.getMonth()+1)+"."));c.appendChild(h);
+    const evs=eventsOn(key);
+    evs.slice(0,3).forEach(e=>{const ch=el("div","chip");ch.appendChild(kidDots(e.kids));const t=el("span","ct");if(e.start){t.appendChild(el("b",null,hhmm(e.start)+" "))}t.appendChild(document.createTextNode(e.short||e.title));ch.appendChild(t);c.appendChild(ch)});
+    if(evs.length>3)c.appendChild(el("div","more","+"+(evs.length-3)+" til"));
+    if(!evs.length&&state.loaded.events)c.appendChild(el("div","more","–"));
+    wrap.appendChild(c);
+  }
+}
+
+function renderStatus(){
+  const s=document.getElementById("status"),t=document.getElementById("statusTxt");
+  const all=state.loaded.events&&state.loaded.homework&&state.loaded.words;
+  const u=state.status&&state.status.updatedAt;
+  const stale=u&&(Date.now()-new Date(u).getTime()>36*3600*1000);
+  s.classList.toggle("warn",!!state.err||!all||!!stale);
+  if(!all){t.textContent=state.err==="offline"?"Får ikke hentet planene. Prøver igjen …":"Henter planene …";return}
+  if(u){const d=new Date(u);const same=ymd(d)===ymd(new Date());t.textContent="Oppdatert "+(same?"i dag":d.getDate()+"."+(d.getMonth()+1)+".")+" kl. "+pad(d.getHours())+"."+pad(d.getMinutes())+(state.err==="offline"?" · frakoblet":"")}
+  else t.textContent="Koblet til";
+}
+
+/* ---------- Avkryssing ---------- */
+function toggle(h){
+  const today=ymd(new Date());
+  if(isChecked(h,today))delete ticks[h.id];else ticks[h.id]=today;
+  const keep=new Set(state.homework.map(x=>x.id));Object.keys(ticks).forEach(id=>{if(!keep.has(id))delete ticks[id]});
+  store.set("kb-ticks",JSON.stringify(ticks));render();
+}
+
+/* ---------- Natt ---------- */
+function updateNight(d){
+  const m=d.getHours()*60+d.getMinutes(),isNight=m>=21*60||m<6*60+30;
+  document.getElementById("night").hidden=!(isNight&&Date.now()>nightOverride);
+}
+document.getElementById("night").addEventListener("click",()=>{nightOverride=Date.now()+3*60*1000;updateNight(new Date())});
+
+/* ---------- Skjerm våken ---------- */
+let lock=null;
+async function keepAwake(){try{if(navigator.wakeLock&&document.visibilityState==="visible"&&!lock){lock=await navigator.wakeLock.request("screen");lock.addEventListener("release",()=>{lock=null})}}catch(e){}}
+document.addEventListener("visibilitychange",()=>{keepAwake();if(document.visibilityState==="visible")render()});
+document.addEventListener("click",keepAwake);
+
+/* ---------- Fullskjerm ---------- */
+(function(){
+  const b=document.getElementById("fs"),r=document.documentElement;
+  const req=r.requestFullscreen||r.webkitRequestFullscreen;
+  const isFs=()=>!!(document.fullscreenElement||document.webkitFullscreenElement);
+  const standalone=window.navigator.standalone||matchMedia("(display-mode: standalone)").matches;
+  if(!req||standalone){b.hidden=true;return}
+  const label=()=>{b.textContent=isFs()?"Lukk fullskjerm":"Fullskjerm"};
+  document.addEventListener("fullscreenchange",label);document.addEventListener("webkitfullscreenchange",label);
+  b.addEventListener("click",async()=>{
+    try{
+      if(isFs()){const ex=document.exitFullscreen||document.webkitExitFullscreen;await ex.call(document);return}
+      await req.call(r);
+      setTimeout(()=>{if(!isFs()){b.textContent="Fullskjerm ikke tillatt her";b.disabled=true}},900);
+    }catch(e){b.textContent="Fullskjerm ikke tillatt her";b.disabled=true}
+  });
+})();
+
+/* ---------- Start ---------- */
+/* ---------- Data fra data.json ---------- */
+function getKey(){try{const k=JSON.parse(store.get("kb-key")||"null");return k&&k.d?k:null}catch(e){return null}}
+function showPair(msg){const p=document.getElementById("pair");p.hidden=false;const e=document.getElementById("pairErr");e.hidden=!msg;e.textContent=msg||""}
+document.getElementById("pairForm").addEventListener("submit",ev=>{
+  ev.preventDefault();
+  const k=parsePairingCode(document.getElementById("pairCode").value);
+  if(!k){showPair("Koden ser ikke riktig ut. Den skal starte med KB1- og være 133 tegn.");return}
+  store.set("kb-key",JSON.stringify(k));document.getElementById("pair").hidden=true;load();
+});
+(function hashPair(){const m=/[#&]pair=([^&]+)/.exec(location.hash);if(m){const k=parsePairingCode(decodeURIComponent(m[1]));if(k)store.set("kb-key",JSON.stringify(k));history.replaceState(null,"",location.pathname)}})();
+
+function apply(data){
+  KIDS=Array.isArray(data.kids)?data.kids:[];
+  state.events=data.events||[];state.homework=data.homework||[];state.words=data.words||[];
+  state.status={updatedAt:data.updatedAt};state.loaded={events:true,homework:true,words:true};
+}
+async function load(){
+  const key=getKey();
+  if(!key){showPair();return}
+  let env;
+  try{const r=await fetch("data.json?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error(r.status);env=await r.json();store.set("kb-data",JSON.stringify(env))}
+  catch(e){state.err="offline";try{env=JSON.parse(store.get("kb-data")||"null")}catch(x){env=null}}
+  if(!env){render();return}
+  try{apply(await decryptWith(key,env));if(state.err!=="offline")state.err=null}
+  catch(e){showPair("Koden passer ikke til dataene lenger. Lim inn den nyeste koblingskoden.");return}
+  render();
+}
+
+/* ---------- Start ---------- */
+render();tick();setInterval(tick,1000);keepAwake();
+load();setInterval(load,10*60*1000);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")load()});
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js").then(reg=>{setInterval(()=>reg.update(),60*60*1000)}).catch(()=>{});
+  const hadController=!!navigator.serviceWorker.controller;let reloaded=false;
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{if(hadController&&!reloaded){reloaded=true;location.reload()}});
+}
+</script>
+</body>
+</html>
