@@ -1,6 +1,6 @@
 // Kidboard service worker: app shell cached for offline use, data.json always tried from the network first.
 // Bump VERSION when shell files change so open boards reload to the new version.
-const VERSION = "kb-2";
+const VERSION = "kb-3";
 const SHELL = ["./", "index.html", "crypto.js", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png"];
 
 self.addEventListener("install", e => {

@@ -69,6 +69,13 @@ button{font:inherit;color:inherit}
 .date .day{font-family:var(--f-display);font-weight:800;font-size:1.7em;line-height:1.05}
 .date .dm{font-size:1.05em;color:var(--muted)}
 .wk{font-family:var(--f-display);font-weight:700;font-size:.85em;background:var(--ink);color:var(--bg);border-radius:999px;padding:4px 10px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.wx{display:flex;align-items:center;gap:.55em;min-width:0}
+.wx img{width:2.7em;height:2.7em;flex:none}
+.wx .tt{display:flex;align-items:baseline;gap:.45em;font-family:var(--f-display);font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+.wx .hi{font-size:1.7em}
+.wx .lo{font-size:1.15em;opacity:.85}
+.wx .plus{color:var(--red)} .wx .minus{color:var(--blue)}
+.wx .wl{font-size:.72em;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-left:auto;white-space:nowrap}
 .next{background:var(--surface);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:4px;border:1px solid var(--line)}
 .next .lbl{font-size:.72em;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
 .next .when{font-family:var(--f-display);font-weight:800;font-size:1.5em;line-height:1.1;font-variant-numeric:tabular-nums}
@@ -162,20 +169,18 @@ body.tighter .hwi .due{display:none}
 @media (max-width:1000px), (orientation:portrait){
   body{font-size:calc(var(--k,1) * clamp(13px, min(2.2vw, 1.75vh), 21px))}
   .app{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"now" "kids" "week"}
-  .now{display:grid;grid-template-columns:auto 1fr 1fr;gap:.4em 1.2em;align-items:center;overflow:visible}
-  .greet{grid-column:2/-1}
-  .clockwrap{grid-row:1 / span 3}
+  .now{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);grid-template-areas:"clock greet wx" "clock time next" "clock date next" "status status status";gap:.4em 1.2em;align-items:center;overflow:visible}
+  .clockwrap{grid-area:clock} .greet{grid-area:greet} .timebox{grid-area:time} .date{grid-area:date} .next{grid-area:next;align-self:stretch} .wx{grid-area:wx}
   .clock{width:calc(var(--k,1) * 17vh)}
-  .date{grid-column:2}
-  .next{grid-column:3;grid-row:2 / span 2}
-  .status{grid-column:1/-1;margin-top:0}
+  .status{grid-area:status;margin-top:0}
   .kid{max-height:none}
 }
 @media (max-width:760px){
   body{overflow:auto}
   .app{height:auto;overflow:visible;grid-template-rows:auto auto auto}
   .now{grid-template-columns:1fr}
-  .greet,.date,.next{grid-column:auto;grid-row:auto}
+  .now{grid-template-areas:none}
+  .clockwrap,.greet,.timebox,.date,.next,.wx,.status{grid-area:auto}
   .kbody{overflow:visible}
   .kids{grid-template-columns:1fr!important}
   .week{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -200,13 +205,18 @@ body.tighter .hwi .due{display:none}
         <circle class="hub" cx="100" cy="100" r="6"></circle>
       </svg>
     </div>
-    <div>
+    <div class="timebox">
       <div class="digital" id="digital">--.--</div>
       <div class="saying" id="saying"></div>
     </div>
     <div class="date">
       <div><div class="day" id="day">I dag</div><div class="dm" id="dm"></div></div>
       <div class="wk" id="wk">Uke</div>
+    </div>
+    <div class="wx" id="wx" hidden aria-live="polite">
+      <img id="wxIcon" alt="" width="54" height="54">
+      <div class="tt"><span class="hi" id="wxHi"></span><span class="lo" id="wxLo"></span></div>
+      <span class="wl" id="wxLbl">I dag</span>
     </div>
     <div class="next" id="next">
       <div class="lbl">Neste</div>
@@ -311,6 +321,7 @@ function render(){
   renderKids(now,today,tomorrow);
   renderWeek(now,today);
   renderStatus();
+  renderWeather();
   fit();
 }
 
@@ -485,6 +496,40 @@ document.addEventListener("click",keepAwake);
 })();
 
 /* ---------- Start ---------- */
+/* ---------- Vær fra Yr (MET Norway) ---------- */
+const WX_NAMES={"clearsky": "Klarvær", "fair": "Lettskyet", "partlycloudy": "Delvis skyet", "cloudy": "Skyet", "lightrainshowers": "Lette regnbyger", "rainshowers": "Regnbyger", "heavyrainshowers": "Kraftige regnbyger", "lightrainshowersandthunder": "Lette regnbyger og torden", "rainshowersandthunder": "Regnbyger og torden", "heavyrainshowersandthunder": "Kraftige regnbyger og torden", "lightsleetshowers": "Lette sluddbyger", "sleetshowers": "Sluddbyger", "heavysleetshowers": "Kraftige sluddbyger", "lightssleetshowersandthunder ": "Lette sluddbyger og torden", "sleetshowersandthunder": "Sluddbyger og torden", "heavysleetshowersandthunder": "Kraftige sluddbyger og torden", "lightsnowshowers": "Lette snøbyger", "snowshowers": "Snøbyger", "heavysnowshowers": "Kraftige snøbyger", "lightssnowshowersandthunder": "Lette snøbyger og torden", "snowshowersandthunder": "Snøbyger og torden", "heavysnowshowersandthunder": "Kraftige snøbyger og torden", "lightrain": "Lett regn", "rain": "Regn", "heavyrain": "Kraftig regn", "lightrainandthunder": "Lett regn og torden", "rainandthunder": "Regn og torden", "heavyrainandthunder": "Kraftig regn og torden", "lightsleet": "Lett sludd", "sleet": "Sludd", "heavysleet": "Kraftig sludd", "lightsleetandthunder": "Lett sludd og torden", "sleetandthunder": "Sludd og torden", "heavysleetandthunder": "Kraftig sludd og torden", "lightsnow": "Lett snø", "snow": "Snø", "heavysnow": "Kraftig snø", "lightsnowandthunder": "Lett snø og torden", "snowandthunder": "Snø og torden", "heavysnowandthunder": "Kraftig snø og torden", "fog": "Tåke"};
+let wxData=null,wxLoc=null,wxLast=0;
+try{wxData=JSON.parse(store.get("kb-wx")||"null")}catch(e){wxData=null}
+async function loadWeather(force){
+  if(!wxLoc||(!force&&Date.now()-wxLast<30*60*1000))return;
+  wxLast=Date.now();
+  const url="https://api.met.no/weatherapi/locationforecast/2.0/compact?lat="+(+wxLoc.lat).toFixed(3)+"&lon="+(+wxLoc.lon).toFixed(3);
+  try{const r=await fetch(url);if(!r.ok)throw new Error(r.status);wxData=await r.json();store.set("kb-wx",JSON.stringify(wxData))}catch(e){}
+  renderWeather();
+}
+const fmtT=t=>{const v=Math.round(t);return (v<0?"−"+(-v):String(v))+"°"};
+function renderWeather(){
+  const box=document.getElementById("wx");
+  const ts=wxData&&wxData.properties&&wxData.properties.timeseries;
+  if(!wxLoc||!ts){box.hidden=true;return}
+  const now=new Date(),tmr=now.getHours()>=18,target=ymd(tmr?addDays(now,1):now);
+  const day=ts.filter(t=>ymd(new Date(t.time))===target&&t.data&&t.data.instant);
+  const rest=tmr?day:day.filter(t=>new Date(t.time).getTime()>=now.getTime()-3600e3);
+  if(!rest.length){box.hidden=true;return}
+  const temps=rest.map(t=>t.data.instant.details.air_temperature);
+  const hi=Math.max(...temps),lo=Math.min(...temps);
+  const pick=tmr?(rest.find(t=>new Date(t.time).getHours()>=12)||rest[0]):rest[0];
+  const nx=tmr?(pick.data.next_6_hours||pick.data.next_1_hours):(pick.data.next_1_hours||pick.data.next_6_hours);
+  const sym=nx&&nx.summary&&nx.summary.symbol_code;
+  const img=document.getElementById("wxIcon");
+  if(sym&&/^[a-z_]+$/.test(sym)){img.src="icons/weather/"+sym+".svg";img.hidden=false;const base=sym.replace(/_(day|night|polartwilight)$/,"");img.alt=WX_NAMES[base]||""}else img.hidden=true;
+  const H=document.getElementById("wxHi"),L=document.getElementById("wxLo");
+  H.textContent=fmtT(hi);H.className="hi "+(Math.round(hi)>0?"plus":"minus");
+  L.textContent=fmtT(lo);L.className="lo "+(Math.round(lo)>0?"plus":"minus");
+  document.getElementById("wxLbl").textContent=tmr?"I morgen":"I dag";
+  box.hidden=false;
+}
+
 /* ---------- Data fra data.json ---------- */
 function getKey(){try{const k=JSON.parse(store.get("kb-key")||"null");return k&&k.d?k:null}catch(e){return null}}
 function showPair(msg){const p=document.getElementById("pair");p.hidden=false;const e=document.getElementById("pairErr");e.hidden=!msg;e.textContent=msg||""}
@@ -498,6 +543,8 @@ document.getElementById("pairForm").addEventListener("submit",ev=>{
 
 function apply(data){
   KIDS=Array.isArray(data.kids)?data.kids:[];
+  const loc=data.weather&&isFinite(data.weather.lat)&&isFinite(data.weather.lon)?data.weather:null;
+  const changed=!wxLoc||!loc||wxLoc.lat!==loc.lat||wxLoc.lon!==loc.lon;wxLoc=loc;if(changed)loadWeather(true);
   state.events=data.events||[];state.homework=data.homework||[];state.words=data.words||[];
   state.status={updatedAt:data.updatedAt};state.loaded={events:true,homework:true,words:true};
 }
@@ -515,7 +562,7 @@ async function load(){
 
 /* ---------- Start ---------- */
 render();tick();setInterval(tick,1000);keepAwake();
-load();setInterval(load,10*60*1000);
+load();setInterval(load,10*60*1000);setInterval(()=>loadWeather(false),5*60*1000);
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")load()});
 if("serviceWorker" in navigator){
   navigator.serviceWorker.register("sw.js").then(reg=>{setInterval(()=>reg.update(),60*60*1000)}).catch(()=>{});

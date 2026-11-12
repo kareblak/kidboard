@@ -21,6 +21,11 @@ const COLOR = /^#[0-9a-fA-F]{6}$/, ID = /^[a-z0-9-]+$/;
   if (k.color && !COLOR.test(k.color)) errors.push(`kids[${i}] color must be #RRGGBB`);
 });
 const KIDS = new Set((data.kids || []).map(k => k.id));
+if (data.weather !== undefined) {
+  const w = data.weather;
+  if (!w || !Number.isFinite(w.lat) || !Number.isFinite(w.lon) || Math.abs(w.lat) > 90 || Math.abs(w.lon) > 180)
+    errors.push("weather must be { lat, lon } in decimal degrees");
+}
 (data.events || []).forEach((e, i) => {
   if (!e.id) errors.push(`events[${i}] missing id`);
   if (!DATE.test(e.date || "")) errors.push(`events[${i}] bad date`);

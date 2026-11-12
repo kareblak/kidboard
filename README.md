@@ -33,6 +33,8 @@ Everything about the children (ids, names, labels, colours) lives in the data fi
 ```jsonc
 {
   "updatedAt": "2026-03-02T06:00:00+01:00",
+  // optional: where the weather block forecasts for (decimal degrees); leave out to hide it
+  "weather": { "lat": 59.913, "lon": 10.739 },
   "kids": [
     // one column per child, in this order; color is #RRGGBB (lightened automatically in dark mode)
     { "id": "kid1", "name": "Nora", "sub": "4. trinn", "color": "#2E6DB4" },
@@ -56,6 +58,8 @@ Everything about the children (ids, names, labels, colours) lives in the data fi
   ]
 }
 ```
+
+The weather block shows today's high and low (tomorrow's after 18:00) and a Yr symbol, fetched live from MET Norway's [Locationforecast API](https://api.met.no/weatherapi/locationforecast/2.0/documentation) every 30 minutes. Data from MET Norway (CC BY 4.0); weather icons from [metno/weathericons](https://github.com/metno/weathericons) (MIT, see `icons/weather/LICENSE`).
 
 `bring` drives the yellow "Husk i dag" tags and the "Pakk:" lines in each child's "I morgen" box. On weekends the board shows next week's homework.
 
