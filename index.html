@@ -53,12 +53,12 @@ button{font:inherit;color:inherit}
 /* ---------- Nå-panelet ---------- */
 .now{grid-area:now;display:flex;flex-direction:column;gap:.7em;min-width:0;min-height:0;overflow:hidden}
 .greet{font-family:var(--f-display);font-weight:700;font-size:1.05em;color:var(--muted);letter-spacing:.01em}
-.clockwrap{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:.9em;min-width:0}
+.clockwrap{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:.9em;min-width:0}
 .clock{width:min(calc(100% - 6em), calc(var(--k,1) * 30vh));flex:none;aspect-ratio:1}
 .clock .face{fill:var(--face);stroke:var(--line);stroke-width:2}
 .clock .tick{stroke:var(--muted);stroke-width:1.5}
 .clock .tick.big{stroke:var(--ink);stroke-width:3.5}
-.clock .num{fill:var(--ink);font-family:var(--f-display);font-weight:700;font-size:13px;text-anchor:middle;dominant-baseline:central}
+.clock .num{fill:var(--ink);font-family:var(--f-display);font-weight:700;font-size:13px;text-anchor:middle}
 .clock .h{stroke:var(--hand);stroke-width:7;stroke-linecap:round}
 .clock .m{stroke:var(--hand);stroke-width:4.5;stroke-linecap:round}
 .clock .s{stroke:var(--husk);stroke-width:2;stroke-linecap:round}
@@ -185,7 +185,7 @@ body.tighter .hwi .due{display:none}
   .kids{grid-template-columns:1fr!important}
   .week{grid-template-columns:repeat(2,minmax(0,1fr))}
   .now{grid-template-columns:1fr}
-  .clockwrap{grid-row:auto;justify-content:center}
+  .clockwrap{grid-row:auto}
   .clock{width:120px}
 }
 @media (prefers-reduced-motion: reduce){ .clock .s{display:none} }
@@ -274,7 +274,7 @@ function greeting(h){return h<5?"God natt":h<10?"God morgen":h<17?"God dag":h<22
   for(let i=0;i<60;i++){const a=i*6*Math.PI/180,big=i%5===0,r1=big?84:88,l=document.createElementNS(ns,"line");
     l.setAttribute("x1",100+r1*Math.sin(a));l.setAttribute("y1",100-r1*Math.cos(a));l.setAttribute("x2",100+92*Math.sin(a));l.setAttribute("y2",100-92*Math.cos(a));
     l.setAttribute("class","tick"+(big?" big":""));g.appendChild(l)}
-  for(let i=1;i<=12;i++){const a=i*30*Math.PI/180,t=document.createElementNS(ns,"text");t.setAttribute("x",100+72*Math.sin(a));t.setAttribute("y",100-72*Math.cos(a));t.setAttribute("class","num");t.textContent=i;g.appendChild(t)}
+  for(let i=1;i<=12;i++){const a=i*30*Math.PI/180,t=document.createElementNS(ns,"text");t.setAttribute("x",100+72*Math.sin(a));t.setAttribute("y",100-72*Math.cos(a));t.setAttribute("dy","0.35em");t.setAttribute("class","num");t.textContent=i;g.appendChild(t)}
 })();
 let lastMinute=-1, lastDay="";
 function tick(){
