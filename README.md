@@ -69,4 +69,4 @@ The weather block shows today's high and low (tomorrow's after 18:00) and a Yr s
 
 ## Shell updates
 
-When changing `index.html`, `crypto.js` or the icons, bump `VERSION` in `sw.js`. Open boards pick up the new version within an hour and reload themselves.
+When changing `index.html`, `crypto.js` or the icons, bump `VERSION` in `sw.js`. Open boards check for a new version every 10 minutes and whenever the app is brought to the front, then reload themselves.
