@@ -53,8 +53,8 @@ button{font:inherit;color:inherit}
 /* ---------- Nå-panelet ---------- */
 .now{grid-area:now;display:flex;flex-direction:column;gap:.7em;min-width:0;min-height:0;overflow:hidden}
 .greet{font-family:var(--f-display);font-weight:700;font-size:1.05em;color:var(--muted);letter-spacing:.01em}
-.clockwrap{display:flex;flex-direction:column;align-items:center;gap:6px}
-.clock{width:min(100%, calc(var(--k,1) * 30vh));max-width:100%;aspect-ratio:1}
+.clockwrap{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:.9em;min-width:0}
+.clock{width:min(calc(100% - 6em), calc(var(--k,1) * 30vh));flex:none;aspect-ratio:1}
 .clock .face{fill:var(--face);stroke:var(--line);stroke-width:2}
 .clock .tick{stroke:var(--muted);stroke-width:1.5}
 .clock .tick.big{stroke:var(--ink);stroke-width:3.5}
@@ -69,13 +69,13 @@ button{font:inherit;color:inherit}
 .date .day{font-family:var(--f-display);font-weight:800;font-size:1.7em;line-height:1.05}
 .date .dm{font-size:1.05em;color:var(--muted)}
 .wk{font-family:var(--f-display);font-weight:700;font-size:.85em;background:var(--ink);color:var(--bg);border-radius:999px;padding:4px 10px;white-space:nowrap;font-variant-numeric:tabular-nums}
-.wx{display:flex;align-items:center;gap:.55em;min-width:0}
-.wx img{width:2.7em;height:2.7em;flex:none}
-.wx .tt{display:flex;align-items:baseline;gap:.45em;font-family:var(--f-display);font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
-.wx .hi{font-size:1.7em}
-.wx .lo{font-size:1.15em;opacity:.85}
+.wx{display:flex;flex-direction:column;align-items:center;gap:.25em;flex:none;min-width:5em;text-align:center}
+.wx img{width:3.4em;height:3.4em}
+.wx .tt{display:flex;flex-direction:column;align-items:center;gap:.15em;font-family:var(--f-display);font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+.wx .hi{font-size:1.8em}
+.wx .lo{font-size:1.2em;opacity:.85}
 .wx .plus{color:var(--red)} .wx .minus{color:var(--blue)}
-.wx .wl{font-size:.72em;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-left:auto;white-space:nowrap}
+.wx .wl{font-size:.68em;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
 .next{background:var(--surface);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:4px;border:1px solid var(--line)}
 .next .lbl{font-size:.72em;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
 .next .when{font-family:var(--f-display);font-weight:800;font-size:1.5em;line-height:1.1;font-variant-numeric:tabular-nums}
@@ -169,8 +169,8 @@ body.tighter .hwi .due{display:none}
 @media (max-width:1000px), (orientation:portrait){
   body{font-size:calc(var(--k,1) * clamp(13px, min(2.2vw, 1.75vh), 21px))}
   .app{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"now" "kids" "week"}
-  .now{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);grid-template-areas:"clock greet wx" "clock time next" "clock date next" "status status status";gap:.4em 1.2em;align-items:center;overflow:visible}
-  .clockwrap{grid-area:clock} .greet{grid-area:greet} .timebox{grid-area:time} .date{grid-area:date} .next{grid-area:next;align-self:stretch} .wx{grid-area:wx}
+  .now{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);grid-template-areas:"clock greet next" "clock time next" "clock date next" "status status status";gap:.4em 1.2em;align-items:center;overflow:visible}
+  .clockwrap{grid-area:clock} .greet{grid-area:greet} .timebox{grid-area:time} .date{grid-area:date} .next{grid-area:next;align-self:center}
   .clock{width:calc(var(--k,1) * 17vh)}
   .status{grid-area:status;margin-top:0}
   .kid{max-height:none}
@@ -180,12 +180,12 @@ body.tighter .hwi .due{display:none}
   .app{height:auto;overflow:visible;grid-template-rows:auto auto auto}
   .now{grid-template-columns:1fr}
   .now{grid-template-areas:none}
-  .clockwrap,.greet,.timebox,.date,.next,.wx,.status{grid-area:auto}
+  .clockwrap,.greet,.timebox,.date,.next,.status{grid-area:auto}
   .kbody{overflow:visible}
   .kids{grid-template-columns:1fr!important}
   .week{grid-template-columns:repeat(2,minmax(0,1fr))}
   .now{grid-template-columns:1fr}
-  .clockwrap{grid-row:auto;flex-direction:row;justify-content:space-between;flex-wrap:wrap}
+  .clockwrap{grid-row:auto;justify-content:center}
   .clock{width:120px}
 }
 @media (prefers-reduced-motion: reduce){ .clock .s{display:none} }
@@ -204,6 +204,11 @@ body.tighter .hwi .due{display:none}
         <line class="s" id="sh" x1="100" y1="114" x2="100" y2="24"></line>
         <circle class="hub" cx="100" cy="100" r="6"></circle>
       </svg>
+      <div class="wx" id="wx" hidden aria-live="polite">
+        <img id="wxIcon" alt="" width="54" height="54">
+        <div class="tt"><span class="hi" id="wxHi"></span><span class="lo" id="wxLo"></span></div>
+        <span class="wl" id="wxLbl">I dag</span>
+      </div>
     </div>
     <div class="timebox">
       <div class="digital" id="digital">--.--</div>
@@ -212,11 +217,6 @@ body.tighter .hwi .due{display:none}
     <div class="date">
       <div><div class="day" id="day">I dag</div><div class="dm" id="dm"></div></div>
       <div class="wk" id="wk">Uke</div>
-    </div>
-    <div class="wx" id="wx" hidden aria-live="polite">
-      <img id="wxIcon" alt="" width="54" height="54">
-      <div class="tt"><span class="hi" id="wxHi"></span><span class="lo" id="wxLo"></span></div>
-      <span class="wl" id="wxLbl">I dag</span>
     </div>
     <div class="next" id="next">
       <div class="lbl">Neste</div>
